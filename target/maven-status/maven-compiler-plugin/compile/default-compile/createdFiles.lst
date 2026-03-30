@@ -1,0 +1,16 @@
+com/newsaggregator/config/WebSocketConfig.class
+com/newsaggregator/config/RssFeedProperties.class
+com/newsaggregator/config/RssFeedProperties$Max.class
+com/newsaggregator/NewsAggregatorApplication.class
+com/newsaggregator/config/RssFeedProperties$Poll.class
+com/newsaggregator/service/CategoryDetector.class
+com/newsaggregator/controller/NewsController.class
+com/newsaggregator/model/NewsArticleDto.class
+com/newsaggregator/service/NewsService.class
+com/newsaggregator/model/NewsArticleDto$NewsArticleDtoBuilder.class
+com/newsaggregator/model/NewsArticle.class
+com/newsaggregator/controller/NewsApiController.class
+com/newsaggregator/repository/NewsArticleRepository.class
+com/newsaggregator/model/NewsArticle$NewsArticleBuilder.class
+com/newsaggregator/config/RssFeedProperties$FeedConfig.class
+com/newsaggregator/service/RssFeedFetcher.class

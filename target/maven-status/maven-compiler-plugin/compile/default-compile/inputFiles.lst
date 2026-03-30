@@ -1,0 +1,11 @@
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/NewsAggregatorApplication.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/config/RssFeedProperties.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/config/WebSocketConfig.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/controller/NewsApiController.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/controller/NewsController.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/model/NewsArticle.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/model/NewsArticleDto.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/repository/NewsArticleRepository.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/service/CategoryDetector.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/service/NewsService.java
+/home/andrii/IdeaProjects/news-aggregator/src/main/java/com/newsaggregator/service/RssFeedFetcher.java

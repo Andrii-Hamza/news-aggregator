@@ -1,0 +1,55 @@
+# ===========================
+# NEWS AGGREGATOR CONFIG
+# ===========================
+
+# Server
+server:
+  port: 8580
+
+# PostgreSQL Database
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/news_aggregator
+    username: root
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+# JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+# Thymeleaf
+  thymeleaf:
+    cache: false
+
+# ===========================
+# RSS FEED CONFIGURATION
+# ===========================
+# Poll interval in milliseconds (120000 = 2 minutes)
+rss:
+  poll:
+    interval: 120000
+# Maximum articles to keep in database
+  max:
+    articles: 15
+
+# Google News RSS feeds
+
+  feeds:
+    - name: BBC World
+      url: http://feeds.bbci.co.uk/news/world/rss.xml
+
+    - name: Google News - Business
+      url: https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en
+
+    - name: Google News - Politics
+      url: https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNRFZ4ZERBU0FtVnVLQUFQAQ?hl=en-US&gl=US&ceid=US:en
+
+    - name: Google News - Top Stories
+      url: https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en

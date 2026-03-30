@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live News Aggregator</title>
+
+    <!-- SockJS + STOMP for WebSocket -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* === HEADER === */
+        .header {
+            padding: 16px 30px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header-time {
+            font-size: 16px;
+            color: #aaaaaa;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ff4444;
+            transition: background-color 0.3s;
+        }
+
+        .status-dot.connected {
+            background-color: #44ff44;
+        }
+
+        /* === NEWS LIST === */
+        .news-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 30px;
+            overflow: hidden;
+        }
+
+        .news-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #222;
+            animation: fadeIn 0.5s ease-in;
+            flex-shrink: 0;
+        }
+
+        .news-item:hover {
+            background-color: #111;
+        }
+
+        .news-title {
+            flex: 1;
+            margin-right: 20px;
+            overflow: hidden;
+        }
+
+        .news-title a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.4;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .news-title a:hover {
+            text-decoration: underline;
+            color: #cccccc;
+        }
+
+        .news-source {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .news-category {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            min-width: 90px;
+            text-align: right;
+        }
+
+        /* Category colors */
+        .cat-gold { color: #FFD700; }
+        .cat-oil { color: #FF8C00; }
+        .cat-crypto { color: #00BFFF; }
+        .cat-wars { color: #FF4444; }
+        .cat-defense { color: #FF6B6B; }
+        .cat-sanctions { color: #FF9800; }
+        .cat-elections { color: #9C27B0; }
+        .cat-diplomacy { color: #4CAF50; }
+        .cat-economy { color: #2196F3; }
+        .cat-politics { color: #E91E63; }
+        .cat-world { color: #AAAAAA; }
+
+        /* === ANIMATIONS === */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === FOOTER === */
+        .footer {
+            padding: 8px 30px;
+            border-top: 1px solid #222;
+            font-size: 11px;
+            color: #444;
+            text-align: center;
+        }
+
+        /* === LOADING STATE === */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-title">LIVE NEWS</div>
+    <div class="header-time" id="kyivTime"></div>
+    <div class="header-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Connecting...</span>
+    </div>
+</div>
+
+<!-- NEWS LIST -->
+<div class="news-container" id="newsContainer">
+
+    <!-- Initial server-rendered articles (Thymeleaf) -->
+    <div th:each="article : ${articles}" class="news-item">
+        <div class="news-title">
+            <a th:href="${article.link}" th:text="${article.title}" target="_blank" rel="noopener"></a>
+            <div class="news-source" th:text="${article.source}"></div>
+        </div>
+        <div class="news-category"
+             th:text="${article.category}"
+             th:classappend="'cat-' + ${#strings.toLowerCase(article.category)}">
+        </div>
+    </div>
+
+    <!-- Loading state (shown when no articles yet) -->
+    <div class="loading" id="loadingState" th:if="${#lists.isEmpty(articles)}">
+        <div class="loading-spinner"></div>
+        Fetching latest news...
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    News Aggregator &bull; Sources: Google News &bull; Auto-updates in real time
+</div>
+
+<script>
+    // ==========================================
+    // KYIV TIME CLOCK
+    // ==========================================
+    function updateKyivTime() {
+        const now = new Date();
+        const kyivTime = now.toLocaleString('en-GB', {
+            timeZone: 'Europe/Kyiv',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        document.getElementById('kyivTime').textContent = kyivTime + ' Kyiv';
+    }
+    updateKyivTime();
+    setInterval(updateKyivTime, 1000);
+
+    // ==========================================
+    // CATEGORY CSS CLASS MAPPING
+    // ==========================================
+    function getCategoryClass(category) {
+        return 'cat-' + category.toLowerCase();
+    }
+
+    // ==========================================
+    // RENDER NEWS LIST
+    // ==========================================
+    function renderNews(articles) {
+        const container = document.getElementById('newsContainer');
+
+        // Remove loading state if present
+        const loading = document.getElementById('loadingState');
+        if (loading) loading.remove();
+
+        // Build new HTML
+        let html = '';
+        articles.forEach(article => {
+            const catClass = getCategoryClass(article.category);
+            html += `
+                <div class="news-item">
+                    <div class="news-title">
+                        <a href="${article.link}" target="_blank" rel="noopener">${escapeHtml(article.title)}</a>
+                        <div class="news-source">${escapeHtml(article.source)}</div>
+                    </div>
+                    <div class="news-category ${catClass}">${escapeHtml(article.category)}</div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // ==========================================
+    // ESCAPE HTML (prevent XSS)
+    // ==========================================
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+
+    // ==========================================
+    // WEBSOCKET CONNECTION
+    // ==========================================
+    let stompClient = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 10;
+
+    function connectWebSocket() {
+        const socket = new SockJS('/ws-news');
+        stompClient = Stomp.over(socket);
+
+        // Disable STOMP debug logging in console
+        stompClient.debug = null;
+
+        stompClient.connect({}, function (frame) {
+            // Connected!
+            reconnectAttempts = 0;
+            document.getElementById('statusDot').classList.add('connected');
+            document.getElementById('statusText').textContent = 'Live';
+
+            // Subscribe to news topic
+            stompClient.subscribe('/topic/news', function (message) {
+                const articles = JSON.parse(message.body);
+                renderNews(articles);
+            });
+
+        }, function (error) {
+            // Connection lost
+            document.getElementById('statusDot').classList.remove('connected');
+            document.getElementById('statusText').textContent = 'Reconnecting...';
+
+            // Try to reconnect
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                reconnectAttempts++;
+                setTimeout(connectWebSocket, 3000 * reconnectAttempts);
+            } else {
+                document.getElementById('statusText').textContent = 'Disconnected';
+                // Fall back to polling
+                startPolling();
+            }
+        });
+    }
+
+    // ==========================================
+    // POLLING FALLBACK (if WebSocket fails)
+    // ==========================================
+    function startPolling() {
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/v1');
+                const articles = await response.json();
+                renderNews(articles);
+            } catch (e) {
+                console.error('Polling failed:', e);
+            }
+        }, 30000); // Poll every 30 seconds
+    }
+
+    // ==========================================
+    // START
+    // ==========================================
+    connectWebSocket();
+</script>
+
+</body>
+</html>
