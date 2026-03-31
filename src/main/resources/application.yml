@@ -37,19 +37,51 @@ rss:
     interval: 120000
 # Maximum articles to keep in database
   max:
-    articles: 15
+    articles: 12
 
-# Google News RSS feeds
-
+# RSS feed sources
   feeds:
+    # === WORLD / BREAKING NEWS ===
     - name: BBC World
       url: http://feeds.bbci.co.uk/news/world/rss.xml
 
-    - name: Google News - Business
-      url: https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en
+    - name: BBC Business
+      url: http://feeds.bbci.co.uk/news/business/rss.xml
 
-    - name: Google News - Politics
-      url: https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNRFZ4ZERBU0FtVnVLQUFQAQ?hl=en-US&gl=US&ceid=US:en
+    - name: Al Jazeera
+      url: https://www.aljazeera.com/xml/rss/all.xml
 
+    - name: The Guardian World
+      url: https://www.theguardian.com/world/rss
+
+    - name: DW News
+      url: https://rss.dw.com/xml/rss-en-all
+
+    - name: France24
+      url: https://www.france24.com/en/rss
+
+    - name: UN News
+      url: https://news.un.org/feed/subscribe/en/news/all/rss.xml
+
+    # === ECONOMIC / FINANCIAL ===
+    - name: CNBC Economy
+      url: https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258
+
+    - name: MarketWatch
+      url: https://feeds.marketwatch.com/marketwatch/topstories/
+
+    - name: The Guardian Business
+      url: https://www.theguardian.com/uk/business/rss
+
+    # === MILITARY / DEFENSE ===
+    - name: The War Zone
+      url: https://www.thedrive.com/the-war-zone/feed
+
+    - name: Google News - Military
+      url: https://news.google.com/rss/search?q=military+OR+war+OR+defense&hl=en-US&gl=US&ceid=US:en
+      googleNews: true
+
+    # === AGGREGATED ===
     - name: Google News - Top Stories
       url: https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en
+      googleNews: true

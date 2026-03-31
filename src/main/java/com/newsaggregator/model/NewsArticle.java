@@ -23,6 +23,9 @@ public class NewsArticle {
     @Column(nullable = false, length = 1000)
     private String link;
 
+    @Column(length = 2000)
+    private String description;
+
     @Column(nullable = false, length = 50)
     private String category;
 

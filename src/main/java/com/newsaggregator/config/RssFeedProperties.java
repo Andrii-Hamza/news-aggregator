@@ -35,5 +35,6 @@ public class RssFeedProperties {
     public static class FeedConfig {
         private String name;
         private String url;
+        private boolean googleNews = false;
     }
 }

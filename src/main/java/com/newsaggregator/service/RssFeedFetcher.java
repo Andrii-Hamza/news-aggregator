@@ -51,24 +51,35 @@ public class RssFeedFetcher {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             SyndFeedInput input = new SyndFeedInput();
+            input.setAllowDoctypes(true);
             SyndFeed feed = input.build(
                     new XmlReader(new ByteArrayInputStream(response.body().getBytes(StandardCharsets.UTF_8)))
             );
 
             for (SyndEntry entry : feed.getEntries()) {
                 try {
-                    String title = cleanTitle(entry.getTitle());
+                    String rawTitle = entry.getTitle();
+                    String title;
+                    String source;
+
+                    if (feedConfig.isGoogleNews()) {
+                        title = cleanGoogleNewsTitle(rawTitle);
+                        source = extractGoogleNewsSource(rawTitle, feedConfig.getName());
+                    } else {
+                        title = rawTitle != null ? rawTitle.trim() : "Untitled";
+                        source = feedConfig.getName();
+                    }
+
+                    String description = extractDescription(entry);
                     String link = entry.getLink();
                     LocalDateTime publishedAt = convertDate(entry.getPublishedDate());
-                    String category = categoryDetector.detectCategory(title);
-                    String titleHash = hashString(title);
-
-                    // Extract source from Google News title (format: "Title - Source")
-                    String source = extractSource(entry.getTitle(), feedConfig.getName());
+                    String category = categoryDetector.detectCategory(title, description);
+                    String titleHash = hashString(normalizeForHash(title));
 
                     NewsArticle article = NewsArticle.builder()
                             .title(title)
                             .link(link)
+                            .description(description)
                             .category(category)
                             .source(source)
                             .publishedAt(publishedAt)
@@ -91,12 +102,11 @@ public class RssFeedFetcher {
     }
 
     /**
-     * Google News titles often have format: "Article Title - Source Name"
-     * This extracts the clean title without the source.
+     * Google News titles have format: "Article Title - Source Name".
+     * Extracts the clean title without the source suffix.
      */
-    private String cleanTitle(String rawTitle) {
+    private String cleanGoogleNewsTitle(String rawTitle) {
         if (rawTitle == null) return "Untitled";
-        // Google News format: "Title - Source"
         int lastDash = rawTitle.lastIndexOf(" - ");
         if (lastDash > 0) {
             return rawTitle.substring(0, lastDash).trim();
@@ -105,15 +115,44 @@ public class RssFeedFetcher {
     }
 
     /**
-     * Extract source name from Google News title.
+     * Extract source name from Google News title format.
      */
-    private String extractSource(String rawTitle, String defaultSource) {
+    private String extractGoogleNewsSource(String rawTitle, String defaultSource) {
         if (rawTitle == null) return defaultSource;
         int lastDash = rawTitle.lastIndexOf(" - ");
         if (lastDash > 0 && lastDash < rawTitle.length() - 3) {
             return rawTitle.substring(lastDash + 3).trim();
         }
         return defaultSource;
+    }
+
+    /**
+     * Extract description/summary from an RSS entry.
+     */
+    private String extractDescription(SyndEntry entry) {
+        if (entry.getDescription() != null && entry.getDescription().getValue() != null) {
+            String desc = entry.getDescription().getValue()
+                    .replaceAll("<[^>]+>", "")  // strip HTML tags
+                    .trim();
+            if (desc.length() > 2000) {
+                desc = desc.substring(0, 2000);
+            }
+            return desc.isEmpty() ? null : desc;
+        }
+        return null;
+    }
+
+    /**
+     * Normalize title for hashing to improve cross-source deduplication.
+     * Lowercases, strips punctuation, and removes common prefixes like "Breaking:".
+     */
+    private String normalizeForHash(String title) {
+        if (title == null) return "";
+        return title.toLowerCase()
+                .replaceAll("^(breaking|urgent|update|just in|developing):\\s*", "")
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 
     /**

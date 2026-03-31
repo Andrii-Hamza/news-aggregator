@@ -13,6 +13,7 @@ public class NewsArticleDto {
     private Long id;
     private String title;
     private String link;
+    private String description;
     private String category;
     private String source;
     private LocalDateTime publishedAt;
@@ -22,6 +23,7 @@ public class NewsArticleDto {
                 .id(article.getId())
                 .title(article.getTitle())
                 .link(article.getLink())
+                .description(article.getDescription())
                 .category(article.getCategory())
                 .source(article.getSource())
                 .publishedAt(article.getPublishedAt())

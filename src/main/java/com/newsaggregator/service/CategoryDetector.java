@@ -24,14 +24,16 @@ public class CategoryDetector {
         CATEGORY_KEYWORDS.put("Wars", new String[]{
                 "war", "military", "troops", "missile", "airstrike", "bombing",
                 "invasion", "conflict", "combat", "artillery", "drone strike",
-                "ceasefire", "frontline", "battlefield"
+                "ceasefire", "frontline", "battlefield", "expansion", "mobilization",
+                "escalation", "offensive", "counteroffensive"
         });
         CATEGORY_KEYWORDS.put("Defense", new String[]{
                 "nato", "defense", "defence", "arms deal", "weapons", "pentagon",
                 "army", "navy", "air force"
         });
         CATEGORY_KEYWORDS.put("Sanctions", new String[]{
-                "sanction", "embargo", "trade ban", "tariff"
+                "sanction", "embargo", "trade ban", "tariff", "restriction",
+                "blockade", "trade war", "duty"
         });
         CATEGORY_KEYWORDS.put("Elections", new String[]{
                 "election", "vote", "ballot", "polling", "campaign",
@@ -46,7 +48,9 @@ public class CategoryDetector {
                 "federal reserve", "central bank", "recession", "stock market",
                 "wall street", "dow jones", "nasdaq", "s&p", "fiscal",
                 "monetary", "trade", "export", "import", "market", "bank",
-                "finance", "financial", "investor", "investment"
+                "finance", "financial", "investor", "investment", "currency",
+                "exchange rate", "dollar", "euro", "ruble", "forex", "debt",
+                "bond", "commodity"
         });
         CATEGORY_KEYWORDS.put("Politics", new String[]{
                 "president", "congress", "parliament", "senate", "minister",
@@ -60,19 +64,17 @@ public class CategoryDetector {
     }
 
     /**
-     * Detect category from the article title.
+     * Detect category from the article title and description.
      * Returns the first matching category, or "World" as default.
      */
-    public String detectCategory(String title) {
-        if (title == null || title.isBlank()) {
-            return "World";
-        }
-
-        String lowerTitle = title.toLowerCase();
+    public String detectCategory(String title, String description) {
+        String lowerTitle = title == null ? "" : title.toLowerCase();
+        String lowerDesc = description == null ? "" : description.toLowerCase();
+        String combined = lowerTitle + " " + lowerDesc;
 
         for (Map.Entry<String, String[]> entry : CATEGORY_KEYWORDS.entrySet()) {
             for (String keyword : entry.getValue()) {
-                if (lowerTitle.contains(keyword)) {
+                if (combined.contains(keyword)) {
                     return entry.getKey();
                 }
             }
